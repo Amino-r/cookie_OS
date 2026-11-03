@@ -47,8 +47,9 @@ __inline__ uint32 get_block_size(void *va)
 {
 	//TODO: [PROJECT'26.GM#1] DYNAMIC ALLOCATOR - [1] get_block_size
 	//Your code is here
+	struct BlockMetaData *block = (struct BlockMetaData *)((uint32)va - META_DATA_SIZE);
 	//Comment the following line
-	panic("get_block_size() not implemented");
+	//panic("get_block_size() not implemented");
 
 }
 //===========================
