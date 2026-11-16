@@ -52,16 +52,43 @@ void* create_buddy_space()
 {
 	//TODO: [PROJECT'26.GM#2] KERNEL HEAP - [4] create_buddy_space
 	//Your code is here
+	/void buddy_page = kmalloc(PAGE_SIZE);
+	if (buddy_page == NULL)
+		return NULL;*/
+	uint32 buddy_page = kheapPageAllocBreak; //pointer to the next free page in kernel heap
+	if(buddy_page + PAGE_SIZE > KERNEL_HEAP_MAX)// check if the page is byond the krnel heap limit if yes return null
+		return NULL;
+	int status =alloc_page(ptr_page_directory ,buddy_page,PERM_WRITEABLE,1);
+	if (status !=0 )
+		return NULL;
+	kheapPageAllocBreak = kheapPageAllocBreak + PAGE_SIZE; //update the break pointer to the next free page
+	uint32 *page_table = NULL;
+	if(get_page_table(ptr_page_directory,buddy_page,&page_table)==TABLE_NOT_EXIST){
+		unmap_frame(ptr_page_directory,buddy_page);
+		return NULL;
+	}
+	page_table[PTX(buddy_page)] |= BUDDY_SYS_FLAG;
+	kheapPageAllocBreak += PAGE_SIZE;
+return (void *)buddy_page;
 	//Comment the following line
-	panic("create_buddy_space() not implemented");
+	// panic("create_buddy_space() not implemented");
 }
 
 void  delete_buddy_space(void *va)
 {
 	//TODO: [PROJECT'26.GM#2] KERNEL HEAP - [5] delete_buddy_space
 	//Your code is here
+	uint32 page_va = ROUNDDOWN((uint32)va,PAGE_SIZE);
+	uint32 *page_table = NULL;
+	struct FrameInfo *ptr_frame = get_frame_info(ptr_page_directory,page_va,&page_table);
+	if(ptr_frame != NULL){
+	page_table[PTX(page_va)] &= ~BUDDY_SYS_FLAG;
+	unmap_frame(ptr_page_directory,page_va);
+	if (page_va + PAGE_SIZE == kheapPageAllocBreak)
+		kheapPageAllocBreak -= PAGE_SIZE;
+	}
 	//Comment the following line
-	panic("delete_buddy_space() not implemented");
+	// panic("delete_buddy_space() not implemented");
 }
 
 /**************************************************/
@@ -206,8 +233,14 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 {
 	//TODO: [PROJECT'26.GM#2] KERNEL HEAP - [8] kheap_physical_address
 	//Your code is here
+	uint32 *page_table=NULL;
+	struct FrameInfo *frame = get_frame_info(ptr_page_directory , virtual_address ,&page_table); 
+	if(frame == NULL)
+		return 0;
+	uint32 offset = virtual_address & (PAGE_SIZE - 1);
+	return to_physical_address(frame) + offset;
 	//Comment the following line
-	panic("kheap_physical_address() is not implemented yet...!!");
+	// panic("kheap_physical_address() is not implemented yet...!!");
 
 	/*EFFICIENT IMPLEMENTATION ~O(1) IS REQUIRED */
 }
