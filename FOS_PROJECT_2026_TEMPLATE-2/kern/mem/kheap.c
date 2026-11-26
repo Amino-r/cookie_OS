@@ -52,7 +52,7 @@ void* create_buddy_space()
 {
 	//TODO: [PROJECT'26.GM#2] KERNEL HEAP - [4] create_buddy_space
 	//Your code is here
-	/void buddy_page = kmalloc(PAGE_SIZE);
+	void buddy_page = kmalloc(PAGE_SIZE);
 	if (buddy_page == NULL)
 		return NULL;*/
 	uint32 buddy_page = kheapPageAllocBreak; //pointer to the next free page in kernel heap
@@ -137,7 +137,7 @@ void* kmalloc(unsigned int size)
 			kheapPageAllocBreak = kheapPageAllocBreak + numOfPages * PAGE_SIZE;
 		}
 	}
-
+get_pa
 	for (uint32 i = 0; i < numOfPages; i++)
 	{
 		struct FrameInfo *frame_info = NULL;
@@ -171,11 +171,11 @@ void kfree(void* virtual_address)
 	//Your code is here
 	//Comment the following line
 	// panic("kfree() not implemented");
-  size = allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE];
+  uint32 size = allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE];
   uint32 end = (uint32)virtual_address + size * PAGE_SIZE;
   struct Area *behind = NULL;
   struct Area *infront = NULL;
-  LIST_FOREACH(struct FreeArea *a, &free_areas, prev_next_info) {
+  LIST_FOREACH(struct FreeArea a, &free_areas, prev_next_info) {
 	if (end == a->start) {
        infront = a;
 	   LIST_REMOVE(&free_areas, a);
@@ -188,9 +188,9 @@ void kfree(void* virtual_address)
 	if(infront == NULL){
      for (int i = 0; i < numOfPages; i++)
     {
-        unmap_frame(ptr_page_directory, va + i * PAGE_SIZE);
+        unmap_frame(ptr_page_directory, virtual_address + i * PAGE_SIZE);
     }
-     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0
+     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0;
 	}
 	else{
       infront->start = (uint32)virtual_address;
@@ -201,7 +201,7 @@ void kfree(void* virtual_address)
     {
         unmap_frame(ptr_page_directory, va + i * PAGE_SIZE);
     }
-     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0
+     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0;
 	
   }
 	/*EFFICIENT IMPLEMENTATION ~O(#FREE BLOCKS + #FREED PAGES) IS REQUIRED */
@@ -215,7 +215,7 @@ else{
     {
         unmap_frame(ptr_page_directory, va + i * PAGE_SIZE);
     }
-     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0
+     allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0;
 	}
 	else{
      behind->pages += size + infront->pages;
@@ -224,7 +224,7 @@ else{
 	{
 		unmap_frame(ptr_page_directory, va + i * PAGE_SIZE);
 	}
-	 allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0
+	 allocSize[((uint32)virtual_address - KERNEL_HEAP_START) / PAGE_SIZE] = 0;
 	}
 }
 }
